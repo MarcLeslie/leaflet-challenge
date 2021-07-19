@@ -1,6 +1,5 @@
-///////    Create map types
-let streetMap = L.tileLayer("https://api.mapbox.com/styles/v1/{id}/tiles/{z}/{x}/{y}?access_token={accessToken}", 
-{
+///////    Create map types that you will use to switch back and forth to
+let streetMap = L.tileLayer("https://api.mapbox.com/styles/v1/{id}/tiles/{z}/{x}/{y}?access_token={accessToken}", {
     attribution: "© <a href='https://www.mapbox.com/about/maps/'>Mapbox</a> © <a href='http://www.openstreetmap.org/copyright'>OpenStreetMap</a> <strong><a href='https://www.mapbox.com/map-feedback/' target='_blank'>Improve this map</a></strong>",
     tileSize: 512,
     maxZoom: 18,
@@ -9,16 +8,14 @@ let streetMap = L.tileLayer("https://api.mapbox.com/styles/v1/{id}/tiles/{z}/{x}
     accessToken: API_KEY
 });
 
-let darkMap = L.tileLayer("https://api.mapbox.com/styles/v1/mapbox/{id}/tiles/{z}/{x}/{y}?access_token={accessToken}", 
-{
+let darkMap = L.tileLayer("https://api.mapbox.com/styles/v1/mapbox/{id}/tiles/{z}/{x}/{y}?access_token={accessToken}", {
     attribution: "Map data &copy; <a href=\"https://www.openstreetmap.org/\">OpenStreetMap</a> contributors, <a href=\"https://creativecommons.org/licenses/by-sa/2.0/\">CC-BY-SA</a>, Imagery © <a href=\"https://www.mapbox.com/\">Mapbox</a>",
     maxZoom: 18,
     id: "dark-v10",
     accessToken: API_KEY
 });
 
-let satelliteMap = L.tileLayer("https://api.mapbox.com/styles/v1/{id}/tiles/{z}/{x}/{y}?access_token={accessToken}", 
-{
+let satelliteMap = L.tileLayer("https://api.mapbox.com/styles/v1/{id}/tiles/{z}/{x}/{y}?access_token={accessToken}", {
     attribution: "© <a href='https://www.mapbox.com/about/maps/'>Mapbox</a> © <a href='http://www.openstreetmap.org/copyright'>OpenStreetMap</a> <strong><a href='https://www.mapbox.com/map-feedback/' target='_blank'>Improve this map</a></strong>",
     tileSize: 512,
     maxZoom: 18,
@@ -28,61 +25,49 @@ let satelliteMap = L.tileLayer("https://api.mapbox.com/styles/v1/{id}/tiles/{z}/
 });
 
 
-
-
-
 //Add all three map types into a var called basemap as a "control layer"
-let baseMaps = 
-{
+let baseMaps={
     "Street Map" : streetMap,
     "Dark Map" : darkMap,
     "Satellite Map" : satelliteMap
 }; 
 
-// CREATE QUAKE DATA AS A NEW LAYER GROUP
+// Create quake data and tech plates data
 let quake = new L.LayerGroup();
 let techPlates = new L.LayerGroup(); 
 
 
-
-// OVERLAP MAPS - HERE IS WHERE THE QUAKE DATA GETS CALLED IN
-let overlayMaps = {
+// Overlay maps for each layers
+let overlayMaps={
     "Quake!" : quake, 
     "Tectonic Plates" : techPlates
 }; 
 
-// GET THE MAP AND GIVE IT A DEFAULT LAYER
-let myMap = L.map("map",
-{
+// Get the map and give it default layers
+let myMap = L.map("map", {
     center: [37.09, -95.71],
-    zoom: 5,
+    zoom: 4,
     layers: [satelliteMap, quake, techPlates] //Everything in these brackets show up by default 
 });
 
 
-
 // LAYER CONTROL TO SWITCH BACK AND FORTH
-L.control.layers(baseMaps, overlayMaps, 
-{
-    collapsed: false
+L.control.layers(baseMaps, overlayMaps, {
+    collapsed: false // false = that the switch box will be visible upon loading
 }).addTo(myMap);
 
 
 // load data
-d3.json("https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/1.0_week.geojson").then(function(data)
-{
+d3.json("https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/1.0_week.geojson").then(function(data) {
     console.log(data);
 
     //create circle markers
-    //est radius for mag size/circle size - > mag = > circle size
-    function estRadius(mag) 
-    {
+    function estRadius(mag){ //est radius for mag size/circle size - > mag = > circle size
         return Math.sqrt(mag) *6;  // multiply if needed
     }
 
     // est circle color - > depth = darker circles 
-    function circleColor(depth) 
-    {
+    function circleColor(depth) {
         switch (true) 
         { //this part tells it to execute the rest of the code if there is a depth
             case depth > 90: return "#bd0026"; //colors from colorbrewer2.org
