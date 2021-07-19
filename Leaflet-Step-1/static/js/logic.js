@@ -46,7 +46,6 @@ let quake = new L.LayerGroup();
 // OVERLAP MAPS - HERE IS WHERE THE QUAKE DATA GETS CALLED IN
 let overlayMaps = {
     "Quake!" : quake, 
-    "Plates" : plates
 }; 
 
 // GET THE MAP AND GIVE IT A DEFAULT LAYER
@@ -54,7 +53,7 @@ let myMap = L.map("map",
 {
     center: [37.09, -95.71],
     zoom: 5,
-    layers: [satelliteMap, quake, plates] //THIS MAKES SATELLITE THE DEFAULT MAP
+    layers: [satelliteMap, quake] //THIS MAKES SATELLITE THE DEFAULT MAP
 });
 
 
@@ -93,17 +92,36 @@ d3.json("https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/1.0_week.geoj
     }
 
     // style the circle markers
-    function getStylish(features) {
-        return {
+    function getStylish(features){
+        return{
             fillColor: circleColor(features.geometry.coordinates[2]),
             radius: estRadius(features.properties.mag), 
             weight: 0.5,
             stroke: false,
             opacity: 0.9, 
             fillOpacity: 0.7 
-        }; 
+        }
     }
 
+    // add in geoJSON layer to actually create circles 
+    L.geoJSON(data, {
+        pointToLayer: function(feature, latLng) {
+            return L.circleMarker(latLng); // circleMarker is an inherit function
+        },
+        style: getStylish,
+        
+        // CREATE POP UP LABELS 
+        onEachFeature: function(features, layer) {  //Pop up must have MAGNITURE, LOCATION, DEPTH 
+            layer.bindPopup(
+                "<h3>" + "Location: " + features.properties.place +
+                "</h3><hr><p>" + "Magnitude: " + features.properties.mag +
+                "</p><hr><p>" + "Depth: " + features.geometry.coordinates[2] + "</p>"  //The [2] takes you to depth 
+            );
+        }        
+
+    }).addTo(myMap); 
+
+  
 
 
 
@@ -114,39 +132,8 @@ d3.json("https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/1.0_week.geoj
 ///////////////////THIS IS ALL SHIT FROM TRYING/FAILING BEFORE JAMIE VIDEO////////////////////////////////////////////////////////////////////
 
 
-// function createFeatures(yourData) {
-//     // console.log('your data', yourData);
-//     // let quakes = L.geoJson(
-//     //         yourData,
-//     //         {  onEachFeature: onEachFeature }
-//     //     );
 
-//     let quakeArr = [];
-//     for (let i = 0; i < yourData.length; i++) {
-//         let quake = L.circle(yourData[i].geometry.coordinates, {
-//             _latlng: yourData[i].geometry.coordinates,
-//             stroke: false,
-//             fillOpacity: 0.75,
-//             color: "orange",
-//             fillColor: "orange",
-//             radius: yourData[i].properties.mag * 10000
-//         });
-//         // L.latLng(yourData[i].geometry.coordinates);
-//         console.log('quake', quake);
-//         // console.log('coordinates', yourData[i].geometry.coordinates);
-//         quakeArr.push(quake);
-//     }
 
-//     let quakes = L.geoJson(yourData, { onEachFeature: onEachFeature });
-//     createMap(quakes);
-// }
-
-// // CREATE POP UP LABELS 
-// function onEachFeature(feature, layer) {  //Pop up must have MAGNITURE, LOCATION, DEPTH 
-//     layer.bindPopup("<h3>" + "Location:" + feature.properties.place +
-//         "</h3><hr><p>" + "Magnitude:" + feature.properties.mag +
-//         "</p><hr><p>" + "Depth:" + feature.geometry.coordinates[2] + "</p>"); //The [2] takes you to depth 
-// }
 
 
 
