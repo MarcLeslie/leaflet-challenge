@@ -30,6 +30,7 @@ let satelliteMap = L.tileLayer("https://api.mapbox.com/styles/v1/{id}/tiles/{z}/
 
 
 
+
 //Add all three map types into a var called basemap as a "control layer"
 let baseMaps = 
 {
@@ -40,12 +41,14 @@ let baseMaps =
 
 // CREATE QUAKE DATA AS A NEW LAYER GROUP
 let quake = new L.LayerGroup();
+let techPlates = new L.LayerGroup(); 
 
 
 
 // OVERLAP MAPS - HERE IS WHERE THE QUAKE DATA GETS CALLED IN
 let overlayMaps = {
     "Quake!" : quake, 
+    "Tectonic Plates" : techPlates
 }; 
 
 // GET THE MAP AND GIVE IT A DEFAULT LAYER
@@ -53,7 +56,7 @@ let myMap = L.map("map",
 {
     center: [37.09, -95.71],
     zoom: 5,
-    layers: [satelliteMap, quake] //THIS MAKES SATELLITE THE DEFAULT MAP
+    layers: [satelliteMap, quake, techPlates] //Everything in these brackets show up by default 
 });
 
 
@@ -118,19 +121,41 @@ d3.json("https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/1.0_week.geoj
                 "</p><hr><p>" + "Depth: " + features.geometry.coordinates[2] + "</p>"  //The [2] takes you to depth 
             );
         }        
-
-    }).addTo(myMap); 
-
-  
-
-
-
+    }).addTo(quake); 
 });  //END OF ACCESS TO DATA
 
 
 
-///////////////////THIS IS ALL SHIT FROM TRYING/FAILING BEFORE JAMIE VIDEO////////////////////////////////////////////////////////////////////
 
+//get techtonic plates data, add to layer and map from https://raw.githubusercontent.com/fraxen/tectonicplates/master/GeoJSON/PB2002_boundaries.json
+d3.json("https://raw.githubusercontent.com/fraxen/tectonicplates/master/GeoJSON/PB2002_boundaries.json").then(function(plateData) {
+    L.geoJSON(plateData, {
+        color: "red", 
+        weight: 2.0, 
+    })
+    .addTo(techPlates);
+});
+
+// add legend for depth
+let legend = L.control({position: 'bottomright'}); 
+
+legend.onAdd = function() {
+    var div = L.DomUtil.create('div' , 'info legend'), 
+    grades = [90, 70, 50, 30, 20, 10], 
+    colors = ["#bd0026" , "#f03b20" , "#fd8d3c", "#feb24c", "#fed976", "#ffffb2"]; //colors match the depth colors so change both if you change one 
+    
+    for(var i = 0; i < grades.length; i++) {
+        div.innerHTML +=
+            '<i style = "background: '
+            + colors[i]
+            + '"></i>'
+            + grades[i]
+            + (grades[i + 1] ? '&ndash;' + grades[i + 1] + '<br>' : '+');
+    }
+    return div; 
+}; 
+
+legend.addTo(myMap); 
 
 
 
