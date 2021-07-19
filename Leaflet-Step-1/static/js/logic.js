@@ -1,8 +1,4 @@
-
-
-
-
-//    Create map types
+///////    Create map types
 let streetMap = L.tileLayer("https://api.mapbox.com/styles/v1/{id}/tiles/{z}/{x}/{y}?access_token={accessToken}", 
 {
     attribution: "© <a href='https://www.mapbox.com/about/maps/'>Mapbox</a> © <a href='http://www.openstreetmap.org/copyright'>OpenStreetMap</a> <strong><a href='https://www.mapbox.com/map-feedback/' target='_blank'>Improve this map</a></strong>",
@@ -21,7 +17,6 @@ let darkMap = L.tileLayer("https://api.mapbox.com/styles/v1/mapbox/{id}/tiles/{z
     accessToken: API_KEY
 });
 
-
 let satelliteMap = L.tileLayer("https://api.mapbox.com/styles/v1/{id}/tiles/{z}/{x}/{y}?access_token={accessToken}", 
 {
     attribution: "© <a href='https://www.mapbox.com/about/maps/'>Mapbox</a> © <a href='http://www.openstreetmap.org/copyright'>OpenStreetMap</a> <strong><a href='https://www.mapbox.com/map-feedback/' target='_blank'>Improve this map</a></strong>",
@@ -32,60 +27,91 @@ let satelliteMap = L.tileLayer("https://api.mapbox.com/styles/v1/{id}/tiles/{z}/
     accessToken: API_KEY
 });
 
+
+
+
 //Add all three map types into a var called basemap as a "control layer"
-let basemap = 
+let baseMaps = 
 {
     "Street Map" : streetMap,
     "Dark Map" : darkMap,
     "Satellite Map" : satelliteMap
 }; 
 
+// CREATE QUAKE DATA AS A NEW LAYER GROUP
+let quake = new L.LayerGroup();
+
+
+
+// OVERLAP MAPS - HERE IS WHERE THE QUAKE DATA GETS CALLED IN
+let overlayMaps = {
+    "Quake!" : quake, 
+    "Plates" : plates
+}; 
 
 // GET THE MAP AND GIVE IT A DEFAULT LAYER
 let myMap = L.map("map",
 {
     center: [37.09, -95.71],
     zoom: 5,
-    layers: [satelliteMap] //THIS MAKES SATELLITE THE DEFAULT MAP
+    layers: [satelliteMap, quake, plates] //THIS MAKES SATELLITE THE DEFAULT MAP
 });
 
+
+
+// LAYER CONTROL TO SWITCH BACK AND FORTH
+L.control.layers(baseMaps, overlayMaps, 
+{
+    collapsed: false
+}).addTo(myMap);
+
+
+// load data
+d3.json("https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/1.0_week.geojson").then(function(data)
+{
+    console.log(data);
+
+    //create circle markers
+    //est radius for mag size/circle size - > mag = > circle size
+    function estRadius(mag) 
+    {
+        return Math.sqrt(mag) *6;  // multiply if needed
+    }
+
+    // est circle color - > depth = darker circles 
+    function circleColor(depth) 
+    {
+        switch (true) 
+        { //this part tells it to execute the rest of the code if there is a depth
+            case depth > 90: return "#bd0026"; //colors from colorbrewer2.org
+            case depth > 70: return "#f03b20"; 
+            case depth > 50: return "#fd8d3c"; 
+            case depth > 30: return "#feb24c"; 
+            case depth > 10: return "#fed976"; 
+            default: return "#ffffb2";   
+        }
+    }
+
+    // style the circle markers
+    function getStylish(features) {
+        return {
+            fillColor: circleColor(features.geometry.coordinates[2]),
+            radius: estRadius(features.properties.mag), 
+            weight: 0.5,
+            stroke: false,
+            opacity: 0.9, 
+            fillOpacity: 0.7 
+        }; 
+    }
+
+
+
+
+});  //END OF ACCESS TO DATA
+
+
+
 ///////////////////THIS IS ALL SHIT FROM TRYING/FAILING BEFORE JAMIE VIDEO////////////////////////////////////////////////////////////////////
-
-// let dataURL = "https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/1.0_week.geojson"; 
-
-
-
-// d3.json(dataURL).then(function(data) // THIS IS WHAT MAKES THE MAP WORK
-// { 
-//     createFeatures(data.features);
-//     // console.log('data features', data.features);
-// }); 
-
-
-
-// function createMap(quakes) {
-
-//     // Define streetmap 
-//     let streetmap = L.tileLayer("https://api.mapbox.com/styles/v1/{id}/tiles/{z}/{x}/{y}?access_token={accessToken}", 
-//     {
-//       attribution: "© <a href='https://www.mapbox.com/about/maps/'>Mapbox</a> © <a href='http://www.openstreetmap.org/copyright'>OpenStreetMap</a> <strong><a href='https://www.mapbox.com/map-feedback/' target='_blank'>Improve this map</a></strong>",
-//       tileSize: 512,
-//       maxZoom: 18,
-//       zoomOffset: -1,
-//       id: "mapbox/streets-v11",
-//       accessToken: API_KEY
-//     });
-  
-   
-//     // Create our map, giving it the streetmap and earthquakes layers to display on load
-//     
-
-
-
-
-
-// //DO YOUR CIRCLES FOR LOOP HERE LIKE FUNCTION MAG COLORS = 
-// //MAKE CIRCLE RADIUS DEPENDENT ON MAGNITUTE 
 
 
 // function createFeatures(yourData) {
@@ -122,21 +148,6 @@ let myMap = L.map("map",
 //         "</p><hr><p>" + "Depth:" + feature.geometry.coordinates[2] + "</p>"); //The [2] takes you to depth 
 // }
 
-// function createCircles(mag, depth) {
-//     console.log('magnitude', mag);
-//     console.log('depth', depth);
-// }
-
-
-  
-
-
-//    // I NEED SOME WAY TO LOOK AT THE RANGE OF MAG AND DEPTH AND THIS DOES NOT WORK
-// //    let depthMax = d3.json.max(yourData, function(d) {return +d.geometry}); 
-// //    console.log(depthMax); 
-
-// // Circle SIZE = quake MAG (> mag = larger circle)
-// // Circle COLOR = quake DEPTH (> depth = darker circle)
 
 
 
