@@ -63,7 +63,7 @@ d3.json("https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/1.0_week.geoj
 
     //create circle markers
     function estRadius(mag){ //est radius for mag size/circle size - > mag = > circle size
-        return Math.sqrt(mag) *6;  // multiply if needed
+        return Math.sqrt(mag) *8;  // multiply if needed
     }
 
     // est circle color - > depth = darker circles 
@@ -130,7 +130,7 @@ legend.onAdd = function() {
     colors = ["#bd0026" , "#f03b20" , "#fd8d3c", "#feb24c", "#fed976", "#ffffb2"]; //colors match the depth colors so change both if you change one 
     
     for(var i = 0; i < grades.length; i++) {
-        div.innerHTML +=
+        div.innerHTML += 
             '<i style = "background: '
             + colors[i]
             + '"></i>'
